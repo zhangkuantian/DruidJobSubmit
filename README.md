@@ -1,2 +1,7 @@
-# DruidJobSubmit
-Druid.io的查询及实时、离线索引Task的界面/自动提交
+# Druid.io的查询、实时/离线索引任务的界面或者自动提交
+
+### Druid.io的离线索引任务提交
+
+### Druid.io的实时索引任务提交
+
+### Druid.io的查询任务提交(推荐使用目前业内提供的可视化方案如:superset等，这里不再提供)
