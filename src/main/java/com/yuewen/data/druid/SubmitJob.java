@@ -1,29 +1,58 @@
 package com.yuewen.data.druid;
 
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
+import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
+import org.glassfish.jersey.client.ClientConfig;
+
+import com.yuewen.data.druid.cli.CliOptions;
+import com.yuewen.data.druid.cli.CliOptionsParser;
+import com.yuewen.data.druid.exceptions.TaskException;
 import com.yuewen.data.druid.util.FileUtils;
 
 public class SubmitJob {
-
+	
 	public static void main(String[] args) {
-		String result = FileUtils.readStringFromFile("d:/tmp/t_ed_qqbook_order_book_olap.json", "/qidian/offline_olap/t_ed_qqbook_order_book_olap/ds=20181029", "2018-10-29T00:00:00/2018-10-31T00:00:00");
-		System.out.println(result);
+		if(0 >= args.length){
+            CliOptionsParser.printHelpClient();
+            return;
+        }
+        if(args[0].equalsIgnoreCase("-h")){
+            CliOptionsParser.printHelpClient();
+            return;
+        }
+        CliOptions options = CliOptionsParser.parseEmbeddedModeClient(args);
+        if(options.isPrintHelp()){
+            CliOptionsParser.printHelpClient();
+        }
+        
+        String jsonBody = FileUtils.readStringFromFile(options.getTemplate(), options.getPaths(), options.getIntervals());
+        System.out.println(jsonBody);
+        try {
+			String result = submit(jsonBody, options.getHost());
+			System.out.println(result);
+		} catch (TaskException e) {
+			System.out.println(e.getMessage());
+			e.printStackTrace();
+		}
 	}
 	
-	public static String submit(String jsonMsg, String hostPath){
-		String result = null;
-		CloseableHttpClient httpclient = HttpClientBuilder.create().build();
-		RequestConfig.Builder builder = RequestConfig.custom().setConnectTimeout(2000).setSocketTimeout(2000);
-		RequestConfig config = builder.build();
-		HttpPost post = new HttpPost("");
-		post.setHeader("Content-type", "application/json; charset=utf-8");
-		
-		
-		return result;
+	public static String submit(String jsonMsg, String hostPath) throws TaskException{
+		ClientConfig jerseyConfig = new ClientConfig();
+    	jerseyConfig.connectorProvider(new ApacheConnectorProvider());
+    	Client client = ClientBuilder.newClient(jerseyConfig);
+    	WebTarget queryWebTarget = client.target(hostPath);
+    	
+    	try (Response response = queryWebTarget.request(MediaType.APPLICATION_JSON)
+    			.post(Entity.entity(jsonMsg, MediaType.APPLICATION_JSON))){
+    		return response.readEntity(String.class);
+		} catch (Exception e) {
+			throw new TaskException(e);
+		}
 	}
-	
 }

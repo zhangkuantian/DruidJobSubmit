@@ -30,11 +30,16 @@ public class FileUtils {
 			 BufferedReader br = new BufferedReader(isr, 1024)){
 			String tmp = null;
 			while(null != (tmp = br.readLine())){
-				System.out.println("---" + tmp);
 				if(tmp.trim().startsWith("\"paths")){
 					sb.append("\"paths\" :\"" + paths + "\"");
+					if(tmp.endsWith(",")){
+						sb.append(",");
+					}
 				} else if(tmp.trim().startsWith("\"intervals\"")){
 					sb.append("\"intervals\" : [\"" + intervals + "\"]");
+					if(tmp.endsWith(",")){
+						sb.append(",");
+					}
 				} else{
 					sb.append(tmp);
 				}
